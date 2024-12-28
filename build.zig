@@ -83,7 +83,7 @@ pub fn build(b: *std.Build) void {
     tracy_client.linkLibCpp();
     tracy_client.addCSourceFile(.{
         .file = tracy_src.path("./public/TracyClient.cpp"),
-        .flags = &.{},
+        .flags = &.{"-fno-sanitize=undefined"},
     });
     inline for (tracy_header_files) |header| {
         tracy_client.installHeader(
