@@ -273,6 +273,7 @@ pub const TracingAllocator = struct {
             .vtable = &.{
                 .alloc = alloc,
                 .resize = resize,
+                .remap = remap,
                 .free = free,
             },
         };
@@ -281,7 +282,7 @@ pub const TracingAllocator = struct {
     fn alloc(
         ctx: *anyopaque,
         len: usize,
-        ptr_align: u8,
+        ptr_align: std.mem.Alignment,
         ret_addr: usize,
     ) ?[*]u8 {
         const self: *Self = @ptrCast(@alignCast(ctx));
@@ -300,7 +301,7 @@ pub const TracingAllocator = struct {
     fn resize(
         ctx: *anyopaque,
         buf: []u8,
-        buf_align: u8,
+        buf_align: std.mem.Alignment,
         new_len: usize,
         ret_addr: usize,
     ) bool {
@@ -320,11 +321,33 @@ pub const TracingAllocator = struct {
 
         return true;
     }
+    
+    fn remap(
+        self: *anyopaque,
+        memory: []u8,
+        alignment: Alignment,
+        new_len: usize,
+        ret_addr: usize,
+    ) ?[*]u8 {
+        const self: *Self = @ptrCast(@alignCast(ctx));
+        const result = self.parent_allocator.rawRemap(buf, buf_align, new_len, ret_addr);
+        if (options.tracy_enable and result != null) {
+            if (self.pool_name) |name| {
+                c.___tracy_emit_memory_free_named(buf.ptr, 0, name.ptr);
+                c.___tracy_emit_memory_alloc_named(buf.ptr, new_len, 0, name.ptr);
+            } else {
+                c.___tracy_emit_memory_free(buf.ptr, 0);
+                c.___tracy_emit_memory_alloc(buf.ptr, new_len, 0);
+            }
+        }
+
+        return result;
+    }
 
     fn free(
         ctx: *anyopaque,
         buf: []u8,
-        buf_align: u8,
+        buf_align: std.mem.Alignment,
         ret_addr: usize,
     ) void {
         const self: *Self = @ptrCast(@alignCast(ctx));
