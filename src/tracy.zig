@@ -325,7 +325,7 @@ pub const TracingAllocator = struct {
     fn remap(
         self: *anyopaque,
         memory: []u8,
-        alignment: Alignment,
+        alignment: std.mem.Alignment,
         new_len: usize,
         ret_addr: usize,
     ) ?[*]u8 {
