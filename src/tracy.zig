@@ -288,10 +288,19 @@ pub const TracingAllocator = struct {
         const result = self.parent_allocator.rawAlloc(len, ptr_align, ret_addr);
         if (!options.tracy_enable) return result;
 
-        if (self.pool_name) |name| {
-            c.___tracy_emit_memory_alloc_named(result, len, 0, name.ptr);
+        if (!options.tracy_no_callstack and options.tracy_callstack != null) {
+            const depth = options.tracy_callstack.?;
+            if (self.pool_name) |name| {
+                c.___tracy_emit_memory_alloc_callstack_named(result, len, depth, 0, name.ptr);
+            } else {
+                c.___tracy_emit_memory_alloc_callstack(result, len, depth, 0);
+            }
         } else {
-            c.___tracy_emit_memory_alloc(result, len, 0);
+            if (self.pool_name) |name| {
+                c.___tracy_emit_memory_alloc_named(result, len, 0, name.ptr);
+            } else {
+                c.___tracy_emit_memory_alloc(result, len, 0);
+            }
         }
 
         return result;
@@ -310,12 +319,23 @@ pub const TracingAllocator = struct {
 
         if (!options.tracy_enable) return true;
 
-        if (self.pool_name) |name| {
-            c.___tracy_emit_memory_free_named(buf.ptr, 0, name.ptr);
-            c.___tracy_emit_memory_alloc_named(buf.ptr, new_len, 0, name.ptr);
+        if (!options.tracy_no_callstack and options.tracy_callstack != null) {
+            const depth = options.tracy_callstack.?;
+            if (self.pool_name) |name| {
+                c.___tracy_emit_memory_free_callstack_named(buf.ptr, depth, 0, name.ptr);
+                c.___tracy_emit_memory_alloc_callstack_named(buf.ptr, new_len, depth, 0, name.ptr);
+            } else {
+                c.___tracy_emit_memory_free_callstack(buf.ptr, depth, 0);
+                c.___tracy_emit_memory_alloc_callstack(buf.ptr, new_len, depth, 0);
+            }
         } else {
-            c.___tracy_emit_memory_free(buf.ptr, 0);
-            c.___tracy_emit_memory_alloc(buf.ptr, new_len, 0);
+            if (self.pool_name) |name| {
+                c.___tracy_emit_memory_free_named(buf.ptr, 0, name.ptr);
+                c.___tracy_emit_memory_alloc_named(buf.ptr, new_len, 0, name.ptr);
+            } else {
+                c.___tracy_emit_memory_free(buf.ptr, 0);
+                c.___tracy_emit_memory_alloc(buf.ptr, new_len, 0);
+            }
         }
 
         return true;
@@ -330,10 +350,19 @@ pub const TracingAllocator = struct {
         const self: *Self = @ptrCast(@alignCast(ctx));
 
         if (options.tracy_enable) {
-            if (self.pool_name) |name| {
-                c.___tracy_emit_memory_free_named(buf.ptr, 0, name.ptr);
+            if (!options.tracy_no_callstack and options.tracy_callstack != null) {
+                const depth = options.tracy_callstack.?;
+                if (self.pool_name) |name| {
+                    c.___tracy_emit_memory_free_callstack_named(buf.ptr, depth, 0, name.ptr);
+                } else {
+                    c.___tracy_emit_memory_free_callstack(buf.ptr, depth, 0);
+                }
             } else {
-                c.___tracy_emit_memory_free(buf.ptr, 0);
+                if (self.pool_name) |name| {
+                    c.___tracy_emit_memory_free_named(buf.ptr, 0, name.ptr);
+                } else {
+                    c.___tracy_emit_memory_free(buf.ptr, 0);
+                }
             }
         }
 
