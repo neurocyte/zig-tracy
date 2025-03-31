@@ -13,8 +13,8 @@
     },
     .dependencies = .{
         .tracy_src = .{
-            .url = "https://github.com/neurocyte/tracy/archive/0ff0a1b324f497cf313a445637b7df25aabefb47.tar.gz",
-            .hash = "122051b30656170b4628580e571d98b1fe45d7c0d581bc2d45e894c75c6376294ede",
+            .url = "git+https://github.com/wolfpld/tracy#v0.11.1",
+            .hash = "N-V-__8AAMeOlQEipHjcyu0TCftdAi9AQe7EXUDJOoVe0k-t",
         },
     },
 }
