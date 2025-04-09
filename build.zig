@@ -21,6 +21,7 @@ pub fn build(b: *std.Build) void {
     const tracy_no_frame_image = b.option(bool, "tracy_no_frame_image", "Disable the frame image support and its thread") orelse false;
     // NOTE For some reason system tracing on zig projects crashes tracy, will need to investigate
     const tracy_no_system_tracing = b.option(bool, "tracy_no_system_tracing", "Disable systrace sampling") orelse true;
+    const tracy_sampling_hz = b.option(usize, "tracy_sampling_hz", "Set system sampling frequency");
     const tracy_delayed_init = b.option(bool, "tracy_delayed_init", "Enable delayed initialization of the library (init on first call)") orelse false;
     const tracy_manual_lifetime = b.option(bool, "tracy_manual_lifetime", "Enable the manual lifetime management of the profile") orelse false;
     const tracy_fibers = b.option(bool, "tracy_fibers", "Enable fibers support") orelse false;
@@ -137,6 +138,9 @@ pub fn build(b: *std.Build) void {
     if (shared and target.result.os.tag == .windows)
         tracy_client.root_module.addCMacro("TRACY_EXPORTS", "1");
     b.installArtifact(tracy_client);
+    if ( tracy_sampling_hz) |frequency| {
+        tracy_client.root_module.addCMacro("TRACY_SAMPLING_HZ", b.fmt("{}", .{frequency}));
+    }
 }
 
 fn digits2(value: usize) [2]u8 {
