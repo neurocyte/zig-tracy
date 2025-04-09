@@ -52,6 +52,7 @@ pub fn build(b: *std.Build) void {
     options.addOption(bool, "tracy_no_crash_handler", tracy_no_crash_handler);
     options.addOption(bool, "tracy_timer_fallback", tracy_timer_fallback);
     options.addOption(bool, "shared", shared);
+    options.addOption(?usize, "tracy_sampling_hz", tracy_sampling_hz);
 
     const tracy_src = b.dependency("tracy_src", .{});
 
