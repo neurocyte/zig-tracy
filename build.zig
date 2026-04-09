@@ -85,11 +85,11 @@ pub fn build(b: *std.Build) void {
     });
 
     if (target.result.os.tag == .windows) {
-        tracy_client.linkSystemLibrary("dbghelp");
-        tracy_client.linkSystemLibrary("ws2_32");
+        tracy_client.root_module.linkSystemLibrary("dbghelp", .{});
+        tracy_client.root_module.linkSystemLibrary("ws2_32", .{});
     }
-    tracy_client.linkLibCpp();
-    tracy_client.addCSourceFile(.{
+    tracy_client.root_module.link_libcpp = true;
+    tracy_client.root_module.addCSourceFile(.{
         .file = tracy_src.path("./public/TracyClient.cpp"),
         .flags = &.{},
     });
